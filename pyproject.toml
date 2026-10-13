@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ffmpeg-gui"
+dynamic = ["version"]
+description = "A simple, bilingual (English/Chinese) graphical front-end for FFmpeg on Windows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "FFmpegGUI Contributors" }]
+keywords = ["ffmpeg", "gui", "converter", "video", "audio", "pyside6", "i18n", "windows"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Video :: Conversion",
+]
+dependencies = ["PySide6>=6.6"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pyinstaller>=6.3", "pillow>=10.0"]
+
+[project.gui-scripts]
+ffmpeg-gui = "ffmpeg_gui.app:main"
+
+[project.urls]
+Homepage = "https://github.com/liuyan303/FFmpegGUI"
+Repository = "https://github.com/liuyan303/FFmpegGUI"
+Issues = "https://github.com/liuyan303/FFmpegGUI/issues"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = { attr = "ffmpeg_gui.__version__" }
+
+# Ship locales and assets with pip installs so translations also work
+# when the package is installed via pip (resources.py finds them under
+# <prefix>/share/ffmpeg-gui).
+[tool.setuptools.data-files]
+"share/ffmpeg-gui/locales" = ["locales/*.json"]
+"share/ffmpeg-gui/assets" = ["assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"

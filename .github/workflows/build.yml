@@ -1,0 +1,64 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        # PySide6 is only needed by the job-runner tests; they skip
+        # themselves via importorskip if the wheel is unavailable.
+        run: python -m pip install pytest PySide6
+      - name: Run tests
+        run: python -m pytest tests -q
+
+  build-windows:
+    name: Build Windows executable
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+      - name: Generate icon (if missing)
+        run: |
+          if (-not (Test-Path assets/icon.ico)) { python scripts/make_icon.py }
+        shell: pwsh
+      - name: Build executable, smoke test, package release zip
+        run: python scripts/build.py --no-tests
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FFmpegGUI-windows
+          path: |
+            dist/FFmpegGUI.exe
+            release/*-win64.zip
+          retention-days: 30
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/FFmpegGUI.exe
+            release/*-win64.zip
+          generate_release_notes: true
